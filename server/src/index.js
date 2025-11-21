@@ -16,6 +16,8 @@ const app = express();
 
 // parse JSON
 app.use(express.json());
+const linksRouter = require('./routes/links.routes');
+app.use('/api/links', linksRouter);
 
 // health endpoint required for assignment
 app.get('/healthz', (req, res) => {
