@@ -1,21 +1,13 @@
 require('dotenv').config();
 const express = require('express');
-
-// const pool = require('./db/pool');
-
-// console.log("DATABASE_URL:", process.env.DATABASE_URL);
-
-
-// // TEMPORARY TEST
-// pool.query('SELECT NOW()')
-//   .then(res => console.log("DB connected successfully at:", res.rows[0].now))
-//   .catch(err => console.error("DB connection error:", err));
-
+const pool = require('./db/pool');
 
 const app = express();
 
 // parse JSON
 app.use(express.json());
+
+// API routes
 const linksRouter = require('./routes/links.routes');
 app.use('/api/links', linksRouter);
 
@@ -24,9 +16,27 @@ app.get('/healthz', (req, res) => {
   res.json({ ok: true, version: '1.0' });
 });
 
-// placeholder redirect (we will implement properly later)
-app.get('/:code', (req, res) => {
-  return res.status(404).send('Not found');
+// redirect route — MUST be after API routes
+app.get('/:code', async (req, res) => {
+  try {
+    const { code } = req.params;
+
+    const result = await pool.query(
+      'SELECT url FROM links WHERE code = $1',
+      [code]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).send('Not found');
+    }
+
+    const longUrl = result.rows[0].url;
+
+    return res.redirect(302, longUrl);
+  } catch (err) {
+    console.error("REDIRECT ERROR:", err);
+    return res.status(500).send('Server error');
+  }
 });
 
 // start server
