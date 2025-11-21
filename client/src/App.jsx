@@ -1,35 +1,58 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import { Routes, Route, Link } from 'react-router-dom';
+// import Dashboard from './pages/Dashboard';
+// import Stats from './pages/Stats';
+import './index.css';
 
-function App() {
-  const [count, setCount] = useState(0)
-
+/**
+ * Shared Header
+ */
+function Header() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <header className="header container">
+      <div className="flex items-center gap-3">
+        <Link to="/" className="text-xl font-bold">TinyLink</Link>
+        <div className="small-muted">— short links, gracefully</div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+
+      <nav className="flex items-center gap-4">
+        <Link to="/" className="small-muted hover:text-gray-900">Dashboard</Link>
+      </nav>
+    </header>
+  );
 }
 
-export default App
+/**
+ * Shared Footer
+ */
+function Footer() {
+  return (
+    <footer className="mt-12 border-t">
+      <div className="container py-6 text-center small-muted">
+        © {new Date().getFullYear()} TinyLink • Built with care  
+      </div>
+    </footer>
+  );
+}
+
+/**
+ * App Routes + Layout
+ */
+export default function App() {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header />
+
+      {/* Main Content */}
+      <main className="container flex-grow">
+        Hii
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/code/:code" element={<Stats />} />
+        </Routes>
+      </main>
+
+      <Footer />
+    </div>
+  );
+}
