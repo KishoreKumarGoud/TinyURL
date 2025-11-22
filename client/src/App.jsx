@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
-// import Stats from './pages/Stats';
+import Stats from './pages/Stats';
 import './index.css';
 
 /**
@@ -48,7 +48,7 @@ export default function App() {
        
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          {/* <Route path="/code/:code" element={<Stats />} /> */}
+          <Route path="/code/:code" element={<Stats />} />
         </Routes>
       </main>
 
