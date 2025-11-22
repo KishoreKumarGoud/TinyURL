@@ -10,3 +10,5 @@ body {
 .header { @apply flex items-center justify-between py-4; }
 .card { @apply bg-white rounded-2xl shadow p-4; }
 .small-muted { @apply text-sm text-gray-500; }
+
+
