@@ -1,5 +1,5 @@
-
-const BASE = ""; // same origin (Vite dev server proxy)
+const BASE = import.meta.env.VITE_API_BASE_URL; 
+console.log("API BASE →", BASE);
 
 async function request(path, { method = "GET", body } = {}) {
   const opts = { method, headers: {} };
@@ -11,7 +11,6 @@ async function request(path, { method = "GET", body } = {}) {
 
   const res = await fetch(`${BASE}${path}`, opts);
   const text = await res.text();
-console.log("API BASE →", import.meta.env.VITE_API_BASE_URL);
 
   try {
     return {
