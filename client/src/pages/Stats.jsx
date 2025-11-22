@@ -180,12 +180,12 @@ export default function Stats() {
                     {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />} <span>{copied ? "Copied" : "Copy link"}</span>
                   </button>
 
-                  <button
+                  {/* <button
                     onClick={() => (window.location.href = `/code/${encodeURIComponent(link.code)}`)}
                     className="flex items-center gap-2 justify-center w-full rounded-full px-3 py-2 border border-gray-100 text-sm text-gray-700 hover:bg-gray-50"
                   >
                     <BarChart2 className="w-4 h-4" /> View detailed stats
-                  </button>
+                  </button> */}
 
                   <button
                     onClick={handleDelete}
