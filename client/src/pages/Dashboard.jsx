@@ -1,141 +1,42 @@
 import { useEffect, useState } from "react";
+import { Copy, Trash2, BarChart2, Check, Loader2 } from "lucide-react";
 import { api } from "../services/api";
 
 /**
- * Professional, friendly Dashboard with inline styles only.
- * - Inline style objects (no index.css changes)
- * - Accessible, simple, and polished UI
- * - Create form, list, copy, delete, toast, inline validation
+ * Dashboard - modern, clean, aligned inputs.
+ * Hybrid layout: table on md+, cards on mobile.
+ * Copy uses backend URL from VITE_API_BASE_URL (fallback http://localhost:4000)
  */
 
-/* Inline style objects */
-const styles = {
-  card: {
-    background: "#ffffff",
-    borderRadius: 16,
-    padding: 16,
-    boxShadow: "0 6px 18px rgba(16,24,40,0.06)",
-    transition: "box-shadow .18s ease, transform .12s ease",
-  },
-  cardHover: {
-    boxShadow: "0 10px 30px rgba(16,24,40,0.12)",
-    transform: "translateY(-2px)",
-  },
-  primaryBtn: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 8,
-    padding: "10px 16px",
-    borderRadius: 9999,
-    background: "linear-gradient(90deg,#6366f1,#8b5cf6)",
-    color: "#fff",
-    border: "none",
-    cursor: "pointer",
-    boxShadow: "0 6px 18px rgba(99,102,241,0.18)",
-    transition: "transform .12s ease, box-shadow .12s ease",
-  },
-  ghostBtn: {
-    padding: "8px 12px",
-    borderRadius: 12,
-    border: "1px solid #e6e9ef",
-    background: "transparent",
-    cursor: "pointer",
-  },
-  input: {
-    width: "100%",
-    padding: "10px 12px",
-    borderRadius: 12,
-    border: "1px solid #e6e9ef",
-    outline: "none",
-    transition: "box-shadow .12s ease, border-color .12s ease",
-  },
-  smallMuted: {
-    fontSize: 13,
-    color: "#6b7280",
-  },
-  pillCode: {
-    background: "#eef2ff",
-    color: "#4f46e5",
-    padding: "6px 10px",
-    borderRadius: 10,
-    fontWeight: 600,
-  },
-  toast: {
-    position: "fixed",
-    right: 20,
-    bottom: 20,
-    background: "#f0fdf4",
-    color: "#065f46",
-    padding: "10px 14px",
-    borderRadius: 12,
-    boxShadow: "0 8px 24px rgba(16,24,40,0.08)",
-    zIndex: 2000,
-  },
-  toastError: {
-    background: "#fff1f2",
-    color: "#991b1b",
-  },
-  rowCard: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    borderRadius: 12,
-    padding: 12,
-    border: "1px solid #f1f5f9",
-  },
-  smallButton: {
-    padding: "6px 10px",
-    borderRadius: 10,
-    border: "1px solid #e6e9ef",
-    background: "white",
-    cursor: "pointer",
-  },
-};
-
-function Toast({ text, kind = "success", onClose }) {
-  const tStyle = { ...styles.toast, ...(kind === "error" ? styles.toastError : {}) };
+// small toast
+function Toast({ kind = "success", text, onClose }) {
   return (
-    <div style={tStyle} role="status" aria-live="polite">
-      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-        <div style={{ flex: 1 }}>{text}</div>
-        <button onClick={onClose} style={{ ...styles.smallButton, border: "none", background: "transparent" }}>
-          ✕
-        </button>
+    <div className={`fixed right-4 bottom-6 z-50 rounded-lg px-4 py-2 text-sm shadow transition-all
+      ${kind === "error" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-800"}`}>
+      <div className="flex items-center gap-3">
+        <div className="truncate">{text}</div>
+        <button onClick={onClose} className="text-xs text-gray-600">✕</button>
       </div>
     </div>
-  );
-}
-
-function Spinner({ size = 16 }) {
-  return (
-    <svg style={{ width: size, height: size }} viewBox="0 0 24 24" className="animate-spin" aria-hidden>
-      <circle cx="12" cy="12" r="10" stroke="#c7d2fe" strokeWidth="4" fill="none" />
-      <path d="M22 12a10 10 0 00-10-10" stroke="#6366f1" strokeWidth="4" strokeLinecap="round" fill="none" />
-    </svg>
   );
 }
 
 export default function Dashboard() {
   const [links, setLinks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [globalError, setGlobalError] = useState(null);
+  const [globalError, setGlobalError] = useState("");
 
   const [url, setUrl] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [fieldError, setFieldError] = useState({});
   const [toast, setToast] = useState(null);
-  const [hoverIdx, setHoverIdx] = useState(null);
+  const [copied, setCopied] = useState({});
 
-  useEffect(() => {
-    loadLinks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+  // load links
   async function loadLinks() {
     setLoading(true);
-    setGlobalError(null);
+    setGlobalError("");
     try {
       const res = await api.getLinks();
       if (!res.ok) throw new Error(`Load failed (${res.status})`);
@@ -150,6 +51,11 @@ export default function Dashboard() {
     }
   }
 
+  useEffect(() => {
+    loadLinks();
+  }, []);
+
+  // validation
   function isValidUrl(v) {
     try {
       new URL(v);
@@ -159,7 +65,7 @@ export default function Dashboard() {
     }
   }
 
-  function showToast(text, kind = "success", ttl = 3500) {
+  function showToast(text, kind = "success", ttl = 3000) {
     setToast({ text, kind });
     setTimeout(() => setToast(null), ttl);
   }
@@ -167,36 +73,32 @@ export default function Dashboard() {
   async function handleCreate(e) {
     e.preventDefault();
     setFieldError({});
-    const trimmedUrl = url.trim();
-    const trimmedCode = code.trim();
+    const u = url.trim();
+    const c = code.trim();
 
-    if (!trimmedUrl) {
-      setFieldError({ url: "Please enter a URL." });
+    if (!u) {
+      setFieldError({ url: "URL is required" });
       return;
     }
-    if (!isValidUrl(trimmedUrl)) {
-      setFieldError({ url: "Please include protocol, e.g. https://." });
+    if (!isValidUrl(u)) {
+      setFieldError({ url: "Include protocol (https://)" });
       return;
     }
-    if (trimmedCode && !/^[A-Za-z0-9_-]{4,12}$/.test(trimmedCode)) {
-      setFieldError({ code: "4–12 chars: letters, numbers, - or _" });
+    if (c && !/^[A-Za-z0-9_-]{4,12}$/.test(c)) {
+      setFieldError({ code: "4–12 chars: letters/numbers/-/_" });
       return;
     }
 
     setBusy(true);
     try {
-      const payload = trimmedCode ? { url: trimmedUrl, code: trimmedCode } : { url: trimmedUrl };
+      const payload = c ? { url: u, code: c } : { url: u };
       const res = await api.createLink(payload);
       if (!res.ok) {
-        if (res.status === 409) {
-          setFieldError({ code: "Short code already exists." });
-        } else {
-          showToast("Server error while creating link", "error");
-        }
+        if (res.status === 409) setFieldError({ code: "Short code already exists" });
+        else showToast("Server error while creating link", "error");
         return;
       }
-      const short = `${window.location.origin}/${res.data.code}`;
-      showToast(`Created ${short}`);
+      showToast(`Created: ${window.location.origin}/${res.data.code}`);
       setUrl("");
       setCode("");
       await loadLinks();
@@ -208,27 +110,38 @@ export default function Dashboard() {
     }
   }
 
+  // copy uses backend origin so pasted link redirects correctly
+  function getBackendOrigin() {
+    // Vite env: VITE_API_BASE_URL
+    return import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+  }
+
   async function handleCopy(codeToCopy) {
-    const short = `${window.location.origin}/${codeToCopy}`;
+    const short = `${getBackendOrigin()}/${codeToCopy}`;
     try {
       await navigator.clipboard.writeText(short);
+      setCopied((s) => ({ ...s, [codeToCopy]: true }));
+      setTimeout(() => setCopied((s) => ({ ...s, [codeToCopy]: false })), 1200);
       showToast("Copied to clipboard");
-    } catch {
+    } catch (err) {
+      console.error(err);
       showToast("Copy failed", "error");
     }
   }
 
   async function handleDelete(codeToDelete) {
-    const ok = confirm(`Delete short link "${codeToDelete}"?`);
-    if (!ok) return;
+    if (!confirm(`Delete short link "${codeToDelete}"? This cannot be undone.`)) return;
     try {
       const res = await api.deleteLink(codeToDelete);
       if (!res.ok) {
         showToast("Delete failed", "error");
         return;
       }
+      // optimistic UI remove for snappy feeling
+      setLinks((ls) => ls.filter((x) => x.code !== codeToDelete));
       showToast("Deleted");
-      await loadLinks();
+      // refresh in background
+      setTimeout(() => loadLinks(), 400);
     } catch (err) {
       console.error(err);
       showToast("Delete error", "error");
@@ -236,70 +149,52 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ display: "grid", gap: 20 }}>
+    <div className="space-y-6">
       {/* Create card */}
-      <div
-        style={{
-          ...styles.card,
-          padding: 20,
-        }}
-        onMouseLeave={() => setHoverIdx(null)}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+      <div className="bg-white rounded-2xl shadow-sm p-6">
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <div style={{ fontSize: 20, fontWeight: 700 }}>Create a friendly short link</div>
-            <div style={{ marginTop: 6, ...styles.smallMuted }}>Paste a link. Optionally choose a custom code.</div>
+            <h2 className="text-xl font-semibold">Create a short link</h2>
+            <p className="text-sm text-gray-500 mt-1">Paste a URL and optionally choose a custom code.</p>
           </div>
         </div>
 
-        <form onSubmit={handleCreate} style={{ marginTop: 16, display: "grid", gap: 12, gridTemplateColumns: "1fr 260px" }}>
-          <div style={{ gridColumn: "1 / 2" }}>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Target URL</label>
+        <form onSubmit={handleCreate} className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+          <div className="md:col-span-2">
+            <label className="text-sm font-medium text-gray-700">Target URL</label>
             <input
-              style={styles.input}
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://example.com"
-              aria-invalid={!!fieldError.url}
-              onFocus={(e) => (e.target.style.boxShadow = "0 6px 18px rgba(99,102,241,0.12)")}
-              onBlur={(e) => (e.target.style.boxShadow = "none")}
+              placeholder="https://example.com/path"
+              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-100"
             />
-            {fieldError.url && <div style={{ color: "#dc2626", fontSize: 13, marginTop: 6 }}>{fieldError.url}</div>}
-            <div style={{ marginTop: 8, ...styles.smallMuted }}>Example: https://news.yoursite.com/your-long-article</div>
+            {fieldError.url && <p className="text-xs text-red-600 mt-1">{fieldError.url}</p>}
+            <p className="text-xs text-gray-400 mt-1">Tip: include https:// to avoid validation problems.</p>
           </div>
 
-          <div style={{ gridColumn: "2 / 3" }}>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Custom short code (optional)</label>
+          <div>
+            <label className="text-sm font-medium text-gray-700">Custom code (optional)</label>
             <input
-              style={styles.input}
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="my-code"
-              aria-invalid={!!fieldError.code}
-              onFocus={(e) => (e.target.style.boxShadow = "0 6px 18px rgba(99,102,241,0.12)")}
-              onBlur={(e) => (e.target.style.boxShadow = "none")}
+              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-100"
             />
-            {fieldError.code && <div style={{ color: "#dc2626", fontSize: 13, marginTop: 6 }}>{fieldError.code}</div>}
-            <div style={{ marginTop: 8, ...styles.smallMuted }}>4–12 characters: letters, numbers, -, _</div>
+            {fieldError.code && <p className="text-xs text-red-600 mt-1">{fieldError.code}</p>}
 
-            <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+            <div className="flex items-center gap-2 mt-3">
               <button
-                style={{ ...styles.primaryBtn, opacity: busy ? 0.66 : 1 }}
-                disabled={busy}
-                aria-disabled={busy}
                 type="submit"
+                disabled={busy}
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-4 py-2 text-sm shadow hover:brightness-105 disabled:opacity-60"
               >
-                {busy ? <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><Spinner size={14} /> Creating…</span> : "✨ Create"}
+                {busy ? <Loader2 className="animate-spin w-4 h-4" /> : "Create"}
               </button>
 
               <button
                 type="button"
-                style={styles.ghostBtn}
-                onClick={() => {
-                  setUrl("");
-                  setCode("");
-                  setFieldError({});
-                }}
+                onClick={() => { setUrl(""); setCode(""); setFieldError({}); }}
+                className="text-sm text-gray-600 px-3 py-1 rounded-md border border-gray-100"
               >
                 Reset
               </button>
@@ -308,89 +203,107 @@ export default function Dashboard() {
         </form>
       </div>
 
-      {/* Links list */}
-      <div style={styles.card}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-          <div style={{ fontSize: 16, fontWeight: 700 }}>Your links</div>
-          <div style={styles.smallMuted}>{loading ? "Loading…" : `${links.length} total`}</div>
+      {/* List: table on md+, cards on small screens */}
+      <div className="bg-white rounded-2xl shadow-sm p-6">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-medium">Your links</h3>
+          <div className="text-sm text-gray-500">{loading ? "Loading…" : `${links.length} total`}</div>
         </div>
 
-        {globalError && <div style={{ color: "#dc2626", marginBottom: 12 }}>{globalError}</div>}
+        {globalError && <div className="text-sm text-red-600 mb-3">{globalError}</div>}
 
-        {loading && (
-          <div style={{ padding: 12, ...styles.smallMuted }}>
-            <Spinner size={18} /> Loading links...
-          </div>
-        )}
-
-        {!loading && links.length === 0 && <div style={styles.smallMuted}>No links yet — create one above.</div>}
-
-        {!loading && links.length > 0 && (
-          <div style={{ display: "grid", gap: 10 }}>
-            {links.map((l, idx) => {
-              const hovered = hoverIdx === idx;
-              return (
-                <div
-                  key={l.code}
-                  style={{
-                    ...styles.rowCard,
-                    ...(hovered ? styles.cardHover : {}),
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                  onMouseEnter={() => setHoverIdx(idx)}
-                  onMouseLeave={() => setHoverIdx(null)}
-                >
-                  <div style={{ display: "flex", gap: 12, alignItems: "center", minWidth: 0 }}>
-                    <a
-                      href={`/${l.code}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={styles.pillCode}
-                    >
-                      {l.code}
+        {/* Table for md+ */}
+        <div className="hidden md:block">
+          <table className="w-full text-sm">
+            <thead className="text-left text-gray-500">
+              <tr>
+                <th className="pb-2">Code</th>
+                <th className="pb-2">Target URL</th>
+                <th className="pb-2">Clicks</th>
+                <th className="pb-2">Last clicked</th>
+                <th className="pb-2 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {links.map((l) => (
+                <tr key={l.code} className="hover:bg-gray-50">
+                  <td className="py-3">
+                    <a className="inline-flex items-center gap-2 text-indigo-600 font-medium" href={`/${l.code}`} target="_blank" rel="noreferrer">
+                      <span className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-md">{l.code}</span>
                     </a>
+                  </td>
+                  <td className="py-3 max-w-xs truncate">{l.url}</td>
+                  <td className="py-3">{l.clicks ?? 0}</td>
+                  <td className="py-3 text-gray-500">{l.last_accessed ? new Date(l.last_accessed).toLocaleString() : "—"}</td>
+                  <td className="py-3 text-right">
+                    <div className="inline-flex items-center gap-2 justify-end">
+                      <button
+                        onClick={() => handleCopy(l.code)}
+                        title="Copy short link"
+                        className="p-2 rounded-md hover:bg-gray-100"
+                      >
+                        {copied[l.code] ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-gray-600" />}
+                      </button>
 
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 520 }}>{l.url}</div>
-                      <div style={{ marginTop: 6, ...styles.smallMuted, fontSize: 12 }}>
-                        Created: {new Date(l.created_at).toLocaleString()} • Clicks: {l.clicks ?? 0} • Last: {l.last_accessed ? new Date(l.last_accessed).toLocaleString() : "—"}
-                      </div>
+                      <button
+                        onClick={() => (window.location.href = `/code/${encodeURIComponent(l.code)}`)}
+                        title="View stats"
+                        className="p-2 rounded-md hover:bg-gray-100"
+                      >
+                        <BarChart2 className="w-4 h-4 text-gray-600" />
+                      </button>
+
+                      <button
+                        onClick={() => handleDelete(l.code)}
+                        title="Delete"
+                        className="p-2 rounded-md hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </button>
                     </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Cards for small screens */}
+        <div className="md:hidden space-y-3">
+          {links.map((l) => (
+            <div key={l.code} className="border rounded-lg p-3 bg-white shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-3">
+                    <a className="font-medium text-indigo-600" href={`/${l.code}`} target="_blank" rel="noreferrer">
+                      <span className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-md">{l.code}</span>
+                    </a>
+                    <div className="truncate text-sm text-gray-700">{l.url}</div>
                   </div>
 
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <button
-                      onClick={() => handleCopy(l.code)}
-                      style={styles.smallButton}
-                      aria-label={`Copy ${l.code}`}
-                    >
-                      Copy
-                    </button>
-
-                    <button
-                      onClick={() => (window.location.href = `/code/${encodeURIComponent(l.code)}`)}
-                      style={styles.smallButton}
-                    >
-                      Stats
-                    </button>
-
-                    <button
-                      onClick={() => handleDelete(l.code)}
-                      style={{ ...styles.smallButton, color: "#dc2626", borderColor: "#fee2e2", background: hovered ? "#fff7f7" : "white" }}
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  <div className="text-xs text-gray-400 mt-2">Clicks: {l.clicks ?? 0} • Last: {l.last_accessed ? new Date(l.last_accessed).toLocaleString() : "—"}</div>
                 </div>
-              );
-            })}
-          </div>
-        )}
+
+                <div className="flex items-center gap-2 shrink-0 ml-3">
+                  <button onClick={() => handleCopy(l.code)} className="p-2 rounded-md hover:bg-gray-100">
+                    {copied[l.code] ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-gray-600" />}
+                  </button>
+                  <button onClick={() => (window.location.href = `/code/${encodeURIComponent(l.code)}`)} className="p-2 rounded-md hover:bg-gray-100">
+                    <BarChart2 className="w-4 h-4 text-gray-600" />
+                  </button>
+                  <button onClick={() => handleDelete(l.code)} className="p-2 rounded-md hover:bg-red-50">
+                    <Trash2 className="w-4 h-4 text-red-600" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
       </div>
 
-      {toast && <Toast text={toast.text} kind={toast.kind} onClose={() => setToast(null)} />}
+      {/* toast */}
+      {toast && <Toast kind={toast.kind} text={toast.text} onClose={() => setToast(null)} />}
     </div>
   );
 }
