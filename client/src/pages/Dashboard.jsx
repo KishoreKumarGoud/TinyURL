@@ -2,10 +2,15 @@ import { useEffect, useState } from "react";
 import { Copy, Trash2, BarChart2, Check, Loader2 } from "lucide-react";
 import { api } from "../services/api";
 import Toast from "../components/Toast";   // ← NEW
+import ConfirmModal from "../components/ConfirmModal";
+
 
 export default function Dashboard() {
   const [links, setLinks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+const [pendingDelete, setPendingDelete] = useState(null);
+
   const [globalError, setGlobalError] = useState("");
 const [sort, setSort] = useState("newest");
 
@@ -261,7 +266,11 @@ const sorted = [...links].sort((a, b) => {
                         <BarChart2 className="w-4 h-4 text-gray-600" />
                       </button>
 
-                      <button onClick={() => handleDelete(l.code)} className="p-2 rounded-md hover:bg-red-50">
+                      <button onClick={() => {
+  setPendingDelete(l.code);
+  setConfirmOpen(true);
+}}
+ className="p-2 rounded-md hover:bg-red-50">
                         <Trash2 className="w-4 h-4 text-red-600" />
                       </button>
                     </div>
@@ -307,7 +316,11 @@ const sorted = [...links].sort((a, b) => {
                     <BarChart2 className="w-4 h-4 text-gray-600" />
                   </button>
 
-                  <button onClick={() => handleDelete(l.code)} className="p-2 rounded-md hover:bg-red-50">
+                  <button onClick={() => {
+  setPendingDelete(l.code);
+  setConfirmOpen(true);
+}}
+ className="p-2 rounded-md hover:bg-red-50">
                     <Trash2 className="w-4 h-4 text-red-600" />
                   </button>
                 </div>
@@ -326,6 +339,23 @@ const sorted = [...links].sort((a, b) => {
           onClose={() => setToast(null)}
         />
       )}
+      <ConfirmModal
+  show={confirmOpen}
+  title="Delete short link?"
+  message={`"${pendingDelete}" will be permanently removed.`}
+  confirmText="Delete"
+  cancelText="Cancel"
+  onCancel={() => {
+    setConfirmOpen(false);
+    setPendingDelete(null);
+  }}
+  onConfirm={() => {
+    setConfirmOpen(false);
+    handleDelete(pendingDelete);
+    setPendingDelete(null);
+  }}
+/>
+
     </div>
   );
 }
