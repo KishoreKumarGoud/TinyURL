@@ -6,11 +6,8 @@ const pool = require('./db/pool');
 const app = express();
 
 // 1️⃣ CORS FIRST
-app.use(cors({
-  origin: "http://localhost:5173",
-  methods: ["GET", "POST", "DELETE", "PUT"],
-  allowedHeaders: ["Content-Type"]
-}));
+app.use(cors({ origin: "*" }));
+
 
 // 2️⃣ JSON parser
 app.use(express.json());
