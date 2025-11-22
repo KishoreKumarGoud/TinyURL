@@ -8,17 +8,27 @@ export default function HealthPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch(import.meta.env.VITE_API_BASE_URL + "/healthz");
-        const data = await res.json();
-        setBackend({ ok: true, ...data });
-      } catch {
-        setBackend({ ok: false });
-      } finally {
-        setLoading(false);
-      }
-    }
+ async function load() {
+  try {
+    const url = import.meta.env.VITE_API_BASE_URL + "/healthz";
+    console.log("🔵 Calling backend health:", url);
+
+    const res = await fetch(url);
+
+    console.log("🟡 Raw response:", res);
+
+    const data = await res.json();
+    console.log("🟢 Parsed health data:", data);
+
+    setBackend({ ok: true, ...data });
+  } catch (err) {
+    console.log("🔴 Health fetch failed:", err);
+    setBackend({ ok: false });
+  } finally {
+    setLoading(false);
+  }
+}
+
     load();
   }, []);
 
