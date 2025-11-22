@@ -11,6 +11,7 @@ async function request(path, { method = "GET", body } = {}) {
 
   const res = await fetch(`${BASE}${path}`, opts);
   const text = await res.text();
+console.log("API BASE →", import.meta.env.VITE_API_BASE_URL);
 
   try {
     return {
