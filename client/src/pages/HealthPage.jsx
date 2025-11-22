@@ -34,7 +34,7 @@ export default function HealthPage() {
 
   function Item({ label, value, ok }) {
     return (
-      <div className="border rounded-xl p-4 bg-white shadow-sm flex items-center justify-between">
+      <div className=" rounded-xl p-4 bg-white shadow-sm flex items-center justify-between">
         <span className="text-gray-600">{label}</span>
         <span className="flex items-center gap-2">
           {ok === false && <XCircle className="w-5 h-5 text-red-500" />}

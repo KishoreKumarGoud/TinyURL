@@ -5,12 +5,12 @@ export default function Toast({ text, kind = "success", onClose }) {
   if (!text) return null;
 
   const base =
-    "fixed right-4 bottom-6 z-50 rounded-lg px-4 py-2 text-sm shadow transition-all animate-fadein";
+    "fixed right-3 top-10 z-50 rounded-lg px-6 py-3 text-sm shadow transition-all animate-fadein";
 
   const cls =
     kind === "error"
-      ? `${base} bg-red-50 text-red-700 border border-red-100`
-      : `${base} bg-emerald-50 text-emerald-800 border border-emerald-100`;
+      ? `${base} bg-red-100 text-red-700 border border-red-100`
+      : `${base} bg-emerald-100 text-emerald-800 border border-emerald-100`;
 
   return (
     <div className={cls} role="status" aria-live="polite">
