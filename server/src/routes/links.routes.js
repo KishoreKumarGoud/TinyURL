@@ -1,13 +1,17 @@
 const express = require('express');
 const router = express.Router();
+const linksController = require('../controllers/links.controller');
 
-// controllers (we will implement next)
-const { createLink } = require('../controllers/links.controller');
-const { getAllLinks } = require('../controllers/links.controller');
+// SAFETY LOG
+console.log("Loaded linksController keys:", Object.keys(linksController));
 
-router.get('/', getAllLinks);
+router.get('/', linksController.getAllLinks);
+router.post('/', linksController.createLink);
 
-// POST /api/links  → Create short link
-router.post('/', createLink);
+// For stats
+router.get('/:code', linksController.getLinkByCode);
+
+// For deletion
+router.delete('/:code', linksController.deleteLink);
 
 module.exports = router;
